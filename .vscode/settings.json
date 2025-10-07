@@ -1,0 +1,14 @@
+{
+  "css.customData": [".vscode/tailwind.json"],
+  // You can remove the Bun formatter lines and use Prettier:
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "[astro]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}
