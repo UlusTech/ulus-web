@@ -1,14 +1,17 @@
 {
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
   "css.customData": [".vscode/tailwind.json"],
-  // You can remove the Bun formatter lines and use Prettier:
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
   "files.associations": {
     "*.css": "tailwindcss"
   },
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "astro", // Enable .astro
+    "typescript" // Enable .ts
+  ],
   "[astro]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "astro-build.astro-vscode"
   }
 }
