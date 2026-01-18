@@ -1,0 +1,25 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  hideFooter?: true;
+}
+
+const { title, description, hideFooter } = Astro.props;
+---
+
+<!doctype html>
+<html lang="tr" class="bg-gray-300">
+  <head>
+    <BaseHead title={title} description={description} />
+  </head>
+  <body>
+    <main>
+      <slot />
+    </main>
+    {!hideFooter && <Footer />}
+  </body>
+</html>
