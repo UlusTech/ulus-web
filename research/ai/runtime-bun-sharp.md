@@ -47,7 +47,7 @@ bun -e 'require("sharp")'  →  sharp 0.35.3 loaded ok
 sharp resolves and loads natively under Bun on this machine, so the documented failure does not
 reproduce here. **[V, local]** Strong but not conclusive: it proves module resolution, not that
 `astro build` completes an image transform. The `<Image />` build test remains subtask 1 in
-[`../../PLAN.md`](../../PLAN.md).
+[`PLAN.md`](PLAN.md).
 
 ## 4. Recommendation
 

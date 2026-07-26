@@ -39,7 +39,9 @@ before it is depended on.
 | [`tooling-packages.md`](tooling-packages.md) | Packages worth adding, and what to skip | settled |
 | [`out-of-scope-claims.md`](out-of-scope-claims.md) | `[W]` claims parked: object storage, Bun's Rust rewrite, Figma tiers | **unverified — do not depend on** |
 
-Decisions derived from all of this live in [`../../PLAN.md`](../../PLAN.md).
+Decisions derived from all of this live in [`PLAN.md`](PLAN.md) — also agent-written, and candidate
+in the same way. Where it records something as *decided with a date*, that is Bilgehan's call, not
+the agent's.
 
 ---
 
