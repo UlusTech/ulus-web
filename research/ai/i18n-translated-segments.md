@@ -1,0 +1,128 @@
+# i18n: translated route segments, no locale prefix
+
+**Date:** 2026-07-26 · **Split from `astro-stack-2026.md` §6.2; supersedes that doc's §3 i18n line**
+**Versions pinned:** Astro 7.1.3, `@astrojs/sitemap` (version unpinned — see gaps)
+**Status:** approach settled, nothing built. See [`README.md`](README.md) for provenance markers.
+
+---
+
+## The requirement
+
+Turkish-primary with English as a co-equal mirror, and **no `/en/` prefix**. URLs look like:
+
+```
+ulus.me/üst-yönetim-kurulu/bilgehan
+ulus.me/the-high-assembly/bilgehan
+```
+
+Bilgehan's stated position: `/en/*` treats Turkish as unmarked and English as a bolt-on, which is
+backwards for Ulus.
+
+## Why Astro's built-in i18n is the wrong instrument
+
+`astro:i18n` solves **locale prefixing** (`/es/…`, `/fr/…`). The requirement is **translated
+segments**. Different problem — and the built-in feature has no mode that produces the second from
+the first. **[I]**
+
+`i18n.domains` — the multi-domain route — is closed off by a hard constraint, not taste:
+
+> `i18n.domains` requires `output: "server"` plus an adapter, "with no prerendered pages". Its
+> documented limitations: `site` mandatory, `output` must be `"server"`, no individual prerendered
+> pages. **[V]** — [Internationalization](https://docs.astro.build/en/guides/internationalization/),
+> [Config reference](https://docs.astro.build/en/reference/configuration-reference/)
+
+So `ulus.org.tr` / `ulus.org.uk` as locale domains is **off the table while static**. If it is ever
+wanted, the answer is N static builds of one repo with `site` and a default-language flag as
+build-time env vars — cleaner than `i18n.domains` and it works with static output. **[I]** Parked by
+decision 2026-07-26.
+
+**[G]** Context7's extraction nests that same limitations block under a "Custom locale paths"
+heading. The listed constraints match `domains` exactly, so this is most likely a heading-nesting
+artifact and custom locale *paths* remain static-safe — but confirm against the rendered docs page
+before relying on either reading. It does not change the recommendation.
+
+## Astro's official i18n recipe does not solve this either
+
+Reviewed 2026-07-26 against `src/i18n/ui.ts`, `src/i18n/utils.ts`, `src/components/LanguagePicker.astro`,
+copied from [the recipe](https://docs.astro.build/en/recipes/i18n/). Two structural blockers, plus
+independent defects. Not an i18next question — no i18next package is involved.
+
+**Structural — the recipe cannot express the requirement:**
+
+1. **It is prefix-based.** `useTranslatedPath` returns `/${l}${translatedPath}` for any non-default
+   language. Turkish gets `/servisler`, English gets `/en/services`. `showDefaultLang` only strips
+   the prefix from the *default* language; there is no setting that yields `/the-high-assembly`.
+2. **`getLangFromUrl` reads language from path segment 0.** Given `/the-high-assembly/bilgehan` it
+   tests `"the-high-assembly" in ui` → false → returns the default, `"tr"`. **English pages would
+   report Turkish**, poisoning `<html lang>`, `hreflang`, OG locale, and Pagefind's
+   language-dependent stemming. With translated segments there is no language in the URL at all —
+   it has to come from `getStaticPaths` props, or from reverse-looking-up the matched segment.
+
+**Independent defects in the copied code:**
+
+- `ui.ts` — `ui.en` has a `nav.twitter` key that `ui.tr` lacks. `t` is typed
+  `keyof (typeof ui)[typeof defaultLang]`, i.e. Turkish keys only, so `t('nav.twitter')` is a type
+  error despite the string existing. The runtime fallback (`key in localizedUI ? … : ui[defaultLang][key]`)
+  papers over what the types should forbid. House style says the opposite: make Turkish the source
+  of truth and require every other language to satisfy the same key set, so a missing translation is
+  a compile error rather than a silent fallback to Turkish text on an English page.
+- `utils.ts` — `path.replaceAll("/", "")` flattens `/a/b` to `"ab"`. Single-segment paths only;
+  breaks on `/üst-yönetim-kurulu/bilgehan`.
+- `utils.ts` — typing the localized table as `Record<string, string>` discards the literal keys,
+  defeating the typing above it.
+- `ui.ts` — `routes` is not `as const` while `ui` is; inconsistent, loses literal types.
+- `LanguagePicker.astro` — links to `/${lang}/`, the site **root** in that language. Clicking
+  "English" on a person's page lands on the homepage instead of that person's English URL.
+
+## The approach that does work
+
+One map keyed by concept, with a column per language. Language is determined by which column
+matched, never by sniffing the URL. `getStaticPaths` emits both languages from one content file and
+passes the language as a prop.
+
+The same map is the single source for five things, which is the point — they cannot drift:
+
+1. the route table
+2. `hreflang` + `x-default` in the `<SEO />` component
+3. sitemap URL enumeration
+4. the language picker's counterpart lookup (swap the segment, preserve the rest of the path)
+5. the ASCII → UTF-8 redirect map
+
+The UI-strings table from the recipe is worth keeping once its key-parity typing is fixed. The path
+helpers and the language picker are not salvageable.
+
+## Consequence the earlier research got wrong
+
+`@astrojs/sitemap`'s `i18n` option emits `xhtml:link` alternates by matching **path prefixes**
+(`/es/`, `/fr/`). With translated segments there is no prefix to match, so **that option does not
+apply and `hreflang`/`x-default` become hand-rolled** in the `<SEO />` component. **[I]** The
+sitemap integration still earns its place for URL enumeration.
+
+## Slug form
+
+Decided 2026-07-26: **canonical is UTF-8** (`/üst-yönetim-kurulu`), with the ASCII fold
+(`/ust-yonetim-kurulu`) as an alias that **301s to the canonical**. Movement is ASCII → Turkish.
+
+Consequences to accept:
+
+- Static output emits no real 301s without host support, so **the alias map lives in the Caddyfile**,
+  splitting the route table across two files. Mitigation: generate that block from the segment map at
+  build time so the two cannot drift. **[I]**
+- **The ASCII fold is not injective** — `ı→i` collides with `i→i`. Two distinct Turkish segments can
+  fold to the same ASCII string, producing an ambiguous redirect. With a hardcoded segment map this
+  is checkable: the generator must assert no collisions and fail the build. **[I]**
+- Aliases must be **excluded from the sitemap**, or the site publishes duplicate content pointing at
+  its own canonical. **[I]**
+- Turkish casing: `toLowerCase()` mishandles dotted/dotless `i`. Hardcode slugs in the map; never
+  generate them from titles. **[W/I]**
+
+## Open for research
+
+- [ ] Custom locale *paths* vs `i18n.domains` — is the static-output restriction really scoped to
+      `domains` only? **[G]**
+- [ ] Does Caddy write `Location:` percent-encoded when redirecting to a target containing Turkish
+      characters (`/%C3%BCst-y%C3%B6netim-kurulu/…`)? Blocks the alias map. **[G]**
+- [ ] `@astrojs/sitemap` — confirm there is no supported way to express alternates for
+      non-prefix-based locale routing before committing to hand-rolled `hreflang`. **[I]**, unverified
+- [ ] Pagefind's Turkish stemming quality on agglutinated forms (`yönetim` / `yönetimi` /
+      `yönetimde`). Empirical, needs a built index. See [`tooling-packages.md`](tooling-packages.md).
