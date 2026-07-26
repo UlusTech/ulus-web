@@ -1,7 +1,8 @@
 # i18n: translated route segments, no locale prefix
 
 **Date:** 2026-07-26 · **Split from `astro-stack-2026.md` §6.2; supersedes that doc's §3 i18n line**
-**Versions pinned:** Astro 7.1.3, `@astrojs/sitemap` (version unpinned — see gaps)
+**Versions pinned:** Astro 7.1.3, `@astrojs/sitemap` 3.7.3 (both confirmed installed, `bun.lock`
+2026-07-26)
 **Status:** approach settled, nothing built. See [`README.md`](README.md) for provenance markers.
 
 ---
@@ -46,6 +47,35 @@ before relying on either reading. It does not change the recommendation.
 Reviewed 2026-07-26 against `src/i18n/ui.ts`, `src/i18n/utils.ts`, `src/components/LanguagePicker.astro`,
 copied from [the recipe](https://docs.astro.build/en/recipes/i18n/). Two structural blockers, plus
 independent defects. Not an i18next question — no i18next package is involved.
+
+### Addendum, same day: the config block the first review missed
+
+`astro.config.mjs` now carries an `i18n` block — `defaultLocale: "tr"`, `locales: ["en", "tr"]`,
+`routing.prefixDefaultLocale: false`. **[V]** — read 2026-07-26. It is **working-tree only,
+uncommitted**, as are `src/i18n/` and `src/components/`; the last commit touching that file is
+`6780877 init`, where it was an empty `defineConfig({})`. So this is the same experiment the review
+above covers, and the review simply stopped at three files when there were four.
+
+What the block does, stated plainly: **[I]**
+
+- `prefixDefaultLocale: false` produces `/hakkimizda` for Turkish and `/en/about` for English. That
+  is the prefix model. It is the thing this requirement rules out, not a step toward it.
+- It is also the *only* part of the experiment that is a framework-level commitment rather than
+  copied application code. `ui.ts` and `utils.ts` can be rewritten freely; enabling `astro:i18n`
+  changes how Astro itself resolves routes, and anything built on top inherits that model.
+
+**The two halves disagree with each other**, which is worth naming on its own: the config declares
+`locales: ["en", "tr"]` while `utils.ts` derives language by testing path segment 0 against the `ui`
+table. Two independent locale sources that can drift, and neither of them is the segment map this
+file recommends as the single source. **[I]**
+
+This does not change the recommendation below; it extends the same finding to a fourth file. What is
+genuinely undecided is whether *any* part of `astro:i18n` is worth keeping alongside a hand-rolled
+segment map — `Astro.currentLocale`, `getRelativeLocaleUrl`, and the `locales` list itself all become
+either unused or actively misleading once routing is hand-rolled. **[G]** Not researched: whether
+enabling the block with no prefix has side effects on the static build (route collision, duplicate
+emission) when a catch-all `[...path].astro` is also present. That is the question worth answering
+before subtask 4 starts, and it is empirical, not a search.
 
 **Structural — the recipe cannot express the requirement:**
 
@@ -126,3 +156,9 @@ Consequences to accept:
       non-prefix-based locale routing before committing to hand-rolled `hreflang`. **[I]**, unverified
 - [ ] Pagefind's Turkish stemming quality on agglutinated forms (`yönetim` / `yönetimi` /
       `yönetimde`). Empirical, needs a built index. See [`tooling-packages.md`](tooling-packages.md).
+- [ ] Does enabling `i18n` in `astro.config.mjs` with `prefixDefaultLocale: false` interfere with a
+      catch-all `[...path].astro` under static output — route collision, duplicate emission, or
+      nothing? Empirical. Blocks subtask 4. **[G]**
+- [ ] Is any part of `astro:i18n` worth keeping beside a hand-rolled segment map
+      (`Astro.currentLocale`, `getRelativeLocaleUrl`), or does enabling it only add a second locale
+      source that can drift from the map? **[G]**

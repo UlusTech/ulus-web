@@ -1,8 +1,14 @@
 # Linting: Biome vs ESLint + Prettier
 
-**Date:** 2026-07-25 · **Split from `astro-stack-2026.md` 2026-07-26**
-**Versions pinned:** Biome 2.5.2 (released 2026-07-01), Astro 7.1.3
+**Date:** 2026-07-26 · **Split from `astro-stack-2026.md` 2026-07-26**
+**Versions pinned:** Biome 2.5.2 (released 2026-07-01) for §1–§4; **2.5.5** for §6, the version
+installed here. Astro 7.1.3.
 **Status:** settled — Biome alone. See [`README.md`](README.md) for provenance markers.
+
+**Changed 2026-07-26:** added §6, closing the `overrides[].includes` gap by running the binary.
+Formatting of `.astro` templates moved to its own file,
+[`formatting-astro-templates.md`](formatting-astro-templates.md) — it is a different question and
+was pulling this file off-topic. Nothing in §1–§5 was overwritten.
 
 ---
 
@@ -117,11 +123,48 @@ Config facts, verified 2026-07-25:
 
 `astro check` in CI is the actual type safety. The linter is a supplement.
 
+## 6. The `.astro` overrides, verified against the binary — 2.5.5
+
+Everything here was run, not read. Biome 2.5.5, this repo's config, 2026-07-26. **[V]**
+
+**The false positives are real and reproduce.** A test component with `const x` and `let y` used
+*only* in the template (`<p>{x}</p>`, `<span>{y}</span>`) and a `import type { Foo }` gets three
+findings: `correctness/noUnusedVariables` ×2 and `correctness/noUnusedImports`. Biome reads the
+frontmatter without the template, so anything consumed only by markup looks dead.
+
+**This repo currently has no `.astro` overrides**, and it is already paying for it:
+`src/components/LanguagePicker.astro:6` reports `noUnusedImports` on an import the template uses.
+
+**The documented override block still validates at 2.5.5, key names and rule groups intact:**
+`overrides[].includes` is the correct key (not `include`), `useConst` and `useImportType` are still
+in **`style`**, `noUnusedVariables` and `noUnusedImports` still in **`correctness`**. Applying it
+silences all three findings on the test component. **[V]** — closes the open `[G]`.
+
+**And it does not mask the real bugs.** Re-run against this repo with the override merged into the
+actual `biome.json`: `LanguagePicker.astro:6` disappears, while every `src/i18n/utils.ts` finding —
+four `suspicious/noRedeclare`, one `correctness/noUnusedImports`, one `style/useTemplate` — survives
+untouched, because the override is scoped `**/*.astro`. **[V]** — run 2026-07-26. The blast radius
+is `.astro` frontmatter only.
+
+**Two adjacent config facts found the same way:** **[V]**
+
+- Root keys accepted at 2.5.5: `$schema`, `root`, `extends`, `vcs`, `files`, `formatter`, `linter`,
+  `javascript`, `json`, `css`, `graphql`, `grit`, `html`, `overrides`, `plugins`, `assist`. The
+  v1-era top-level `organizeImports` is gone — it now lives under `assist.actions.source`, which is
+  where this repo already has it.
+- `linter.rules.recommended: true` is **deprecated** and warns, to be removed next major. `preset`
+  is the replacement — again, what this repo already uses. Any snippet still showing `recommended`
+  predates 2.5.
+
+**Cost of the override.** It is a real hole, not a cosmetic one: an import genuinely left behind by
+a refactor in an `.astro` frontmatter will no longer be reported. `astro check` is what still
+catches unused-symbol problems there. The alternative — leaving the rules on and reading past the
+noise — is worse, because noise that is always present stops being read. **[I]**
+
 ## Open for research
 
-- [ ] Biome 2.5.2 `overrides[].includes` schema key, and which rule group each `.astro`
-      false-positive rule belongs to. Write `biome.json` against
-      `https://biomejs.dev/schemas/2.5.2/schema.json` and let the schema validate — an earlier draft
-      of this file guessed the domain key wrong. **[G]**
+- [x] ~~Biome 2.5.2 `overrides[].includes` schema key, and which rule group each `.astro`
+      false-positive rule belongs to.~~ Settled in §6 against 2.5.5, 2026-07-26.
 - [ ] Biome type-inference coverage past v2.1. No figure published. Low priority. **[G]**
-- [ ] Whether Biome's `.astro` support has left experimental status in any release after 2.5.2.
+- [ ] Whether Biome's `.astro` support has left experimental status in any release after 2.5.5.
+      Still 🟡 as of 2026-07-26. **[G]**

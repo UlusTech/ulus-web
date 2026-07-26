@@ -1,7 +1,14 @@
 # Parked `[W]` claims — unverified, do not depend on
 
 **Date:** 2026-07-26 · **Split from `astro-stack-2026.md` §6.6, §6.7**
-**Status:** ⚠️ **nothing here is verified.** See [`README.md`](README.md) for provenance markers.
+**Status:** ⚠️ **nothing here is verified, except the Figma block, which is adjudicated and moved
+out.** See [`README.md`](README.md) for provenance markers.
+
+> **Changed 2026-07-26 (sync pass, same day):** the Figma section had grown into a second copy of the
+> four Figma files' conclusions, and ended with two consecutive paragraphs making the same argument
+> about the pipeline shape. Collapsed to a headline plus pointers; the per-claim disposition table
+> now has one home, in `figma-tokens-and-assets.md`. One claim (third-party DTCG plugins) stayed
+> parked because no owning file verified it.
 
 ---
 
@@ -69,31 +76,44 @@ Relevant only if the site ever leaves static output. Not verified.
 
 ## For the design-token pipeline, genuinely open
 
-### Figma Pro and design tokens
+### Figma Pro and design tokens — **adjudicated, moved out**
 
-Claims **[W]**:
+> **Resolved 2026-07-26.** This block is no longer a holding pen. Every claim in it was checked
+> against primary sources, and the results now live in four dedicated files that **own** them:
+> [`figma-plans-and-entitlement.md`](figma-plans-and-entitlement.md) (gating),
+> [`figma-tokens-and-assets.md`](figma-tokens-and-assets.md) (format mechanics),
+> [`figma-local-toolchain.md`](figma-local-toolchain.md) (MCP/editor),
+> [`figma-surfaces-and-sweep.md`](figma-surfaces-and-sweep.md) (other surfaces).
+>
+> The per-claim disposition table lives at the end of `figma-tokens-and-assets.md`. It is not
+> reproduced here — one copy, one owner.
 
-- The **Variables REST API is Enterprise-only** — scopes `file_variables:read` / `file_variables:write`
-  return 403 "Limited by Figma plan" otherwise, and the calling user needs a full Enterprise seat.
-  So no CI job that pulls tokens automatically on a Pro plan.
-- **Native DTCG export/import** (aligned with the W3C Design Tokens Community Group 1.0 spec) rolled
-  out around December 2025 and is available in the UI, not gated behind Enterprise. Export per mode
-  yields a zip; import works by dragging JSON in.
-- Import is nuanced with two-way aliases — the referenced collection must already be imported or
-  variables arrive broken. Treat the flow as one-directional, Figma → code.
-- Third-party plugins (tokenHaus and others) export to DTCG, Tailwind, CSS variables, Style
-  Dictionary and SCSS, preserving alias links.
+Headline outcome, for someone reading this file alone:
 
-**This one matters and should be verified before the token pipeline is designed**, since Bilgehan is
-on Figma Pro and the whole approach depends on which path is actually available.
+- The **Variables REST API is Enterprise-only** `[V]`. No unattended CI token pull on Pro. This was
+  the load-bearing claim and it survived.
+- Native **DTCG export/import exists and is documented** `[V]`; its availability on Professional is
+  `[I]`, not `[V]`, and needs a two-minute spot-check.
+- "Aligned with the DTCG **1.0** spec" was **wrong** — there is no 1.0. First stable version is
+  **`2025.10`, 2025-10-28** `[V]`.
+- Everything else in the original bundle is `[G]` or `[W]` and is queued in
+  [`README.md`](README.md).
 
-The proposed shape — export DTCG JSON from Figma, commit it, run Style Dictionary, emit
-`tokens.css` — is worth keeping regardless of which export mechanism is available. The commit step is
-the valuable part: token changes become reviewable git diffs instead of silent library publishes,
-which is the same principle as everything else in this project. Naming as `category/role/variant`
-(`color/text/primary` → `--color-text-primary`) removes the translation layer, and semantic names
-must survive mode changes — `text/gray` breaks the moment a dark theme exists, `text/subdued` does
-not. **[W/I]**
+**Only one claim from the original bundle is still parked here**, because no owning file verified it:
+
+- **[W]** Third-party plugins (tokenHaus and others) export to DTCG, Tailwind, CSS variables, Style
+  Dictionary and SCSS, preserving alias links. They exist in Community listings; their capabilities
+  are unchecked.
+
+The pipeline shape survives: `PLAN.md` subtask 7 already specifies a **manual** export committed to
+git, and the commit step — token changes as reviewable diffs rather than silent library publishes —
+is the part that carries the value. Naming as `category/role/variant` needs no translation layer, and
+Figma's own import normalisation confirms it `[V]` (owning file, §2). What the evidence forecloses is
+any later ambition to automate the pull on this plan.
+
+`[I]` One piece of the original advice was never a Figma question and stands on its own: semantic
+names must survive mode changes — `text/gray` breaks the moment a dark theme exists, `text/subdued`
+does not. That is a naming discipline enforced by review, not by any tool.
 
 ---
 
@@ -111,8 +131,11 @@ wrong domain key. Validate against the real schema before anything is written to
 
 ## Open for research
 
-- [ ] **Figma Pro token export path** — the highest-priority item in this file, because a decision
-      depends on it.
+- [x] ~~**Figma Pro token export path**~~ — adjudicated 2026-07-26. The REST route is closed `[V]`;
+      the UI DTCG route is `[I]` and needs a spot-check on the real account; the Plugin API route is
+      open `[V]` but its headless story is `[G]`.
+- [ ] **Third-party DTCG export plugins** (tokenHaus et al.) — the one Figma claim from the original
+      bundle that no owning file verified. Listed in Community; capabilities unchecked. `[W]`
 - [ ] **Object storage for `ulus-haber-api`** — belongs in that repo. Verify MinIO's actual status
       before treating Garage or SeaweedFS as necessary.
 - [ ] TypeScript 7.0's breaking-change list, tracked in

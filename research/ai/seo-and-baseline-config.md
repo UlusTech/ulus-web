@@ -1,7 +1,8 @@
 # SEO and baseline configuration
 
 **Date:** 2026-07-25, amended 2026-07-26 · **Split from `astro-stack-2026.md` §4.1, §4.2**
-**Versions pinned:** Astro 7.1.3, `@astrojs/sitemap`
+**Versions pinned:** Astro 7.1.3, `@astrojs/sitemap` 3.7.3 (both confirmed installed, `bun.lock`
+2026-07-26)
 **Status:** mostly settled. See [`README.md`](README.md) for provenance markers.
 
 ---

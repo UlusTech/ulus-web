@@ -28,22 +28,24 @@ it needs to earn its place. If no, it is cheap to try.
 
 ## Deliberately not recommended
 
-- **Tailwind.** One site with a fixed design system does not need a utility framework; scoped styles
-  in `.astro` plus CSS custom properties are less to remove later. Reversible in minutes — Tailwind
-  v4 is configured in CSS via `@theme`, which consumes the same custom properties, so the token
-  pipeline is not affected either way. Reconsider if six sites ever share one system, where the
-  constraint system is what stops them drifting. **[W/I]**
+- **Tailwind.** Rejected in [`PLAN.md`](PLAN.md) §2. The reversal facts, which is why this entry
+  stays: Tailwind v4 is configured in CSS via `@theme`, consuming the same custom properties, so the
+  token pipeline is unaffected either way and the decision costs minutes to reverse. **Trigger to
+  reconsider:** six sites sharing one system, where a constraint system is what stops them drifting.
+  **[W/I]**
 - **Any UI framework integration** (React/Vue/Svelte). No islands are implied by landing pages;
   adding one turns a zero-JS site into a hydration site.
-- **SEO meta wrapper packages** (`astro-seo` and similar). A ~30–60 line `<SEO />` component is
-  smaller than the dependency and we need control over JSON-LD anyway. See
-  [`seo-and-baseline-config.md`](seo-and-baseline-config.md).
+- **SEO meta wrapper packages** (`astro-seo` and similar). Rejected in [`PLAN.md`](PLAN.md) §2; the
+  component's required surface is owned by
+  [`seo-and-baseline-config.md`](seo-and-baseline-config.md). The sizing fact, kept because it is
+  what makes the call obvious: a ~30–60 line `<SEO />` component is smaller than the dependency, and
+  JSON-LD needs hand control regardless.
 - **`@astrojs/partytown`.** Only needed to offload third-party analytics. Self-hosting Umami or
   Plausible avoids the problem instead of working around it. **[W]**
-- **Keystatic (for now).** Git-backed, MIT, first-party Astro integration, writes Markdown — a real
-  option. But the team is technical, the content is small, and it has **no multi-locale support**,
-  which this site's i18n makes load-bearing. Add it when a non-technical person is actually blocked
-  on editing something. **[W]**
+- **Keystatic (for now).** Deferred in [`PLAN.md`](PLAN.md) §2. The evidence: git-backed, MIT,
+  first-party Astro integration, writes Markdown — a genuinely good fit blocked on one thing, **no
+  multi-locale support**, which this site's i18n makes load-bearing. **[W]** — status unverified,
+  queued. **Trigger to revisit:** a non-technical person actually blocked on editing something.
 
 ## Pagefind specifics
 
@@ -82,19 +84,19 @@ language switcher is announced correctly are not in it. **[I]**
 
 ## Deployment shape
 
-Static output → the VDS, served by Caddy in a rootless Podman container, supervised by systemd, same
-as the rest of the stack. Brotli precompression at build time (level 11 offline beats level 4 on
-demand), immutable cache headers on `/_astro/*`, revalidating headers on HTML — the latter is not
-optional, since prefetch depends on it (see
-[`page-transitions-prefetch.md`](page-transitions-prefetch.md)). No adapter needed while static.
+**Decided in [`PLAN.md`](PLAN.md) §2 and subtasks 13–14** — static output → Caddy in a rootless
+Podman container on the VDS, supervised by systemd; trunk-based with CalVer deploy tags. Not
+re-argued here.
 
-Containerizing rather than rsyncing `dist/` pins Caddy's version and config together with the
-content. An rsync leaves "which config is on the box right now" unanswerable in three years. **[I]**
+The two pieces of *evidence* behind those decisions live here, because this is where they will be
+reread:
 
-**Versioning:** no release branch. Release branches maintain old versions of shipped software that
-cannot be updated; a website has exactly one version in production. Trunk-based with protected
-`main`, CalVer deploy tags, and the build SHA embedded in the output so a bug report names a commit.
-Rollback is the previous image SHA. **[I]**
+- **Containerizing beats rsyncing `dist/`** because it pins Caddy's version and config together with
+  the content. An rsync leaves "which config is on the box right now" unanswerable in three years.
+  **[I]**
+- **Revalidating cache headers on HTML are not optional**, because prefetch depends on them — see
+  [`page-transitions-prefetch.md`](page-transitions-prefetch.md), which owns that fact. Brotli at
+  level 11 offline beats level 4 on demand. No adapter needed while static.
 
 ## Open for research
 

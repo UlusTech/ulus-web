@@ -88,7 +88,7 @@ Each is one focused session with a stated done-condition. Order matters — 1 an
 | - | ---- | --------- |
 | 1 | **Settle Bun + sharp empirically.** One real asset, `<Image />`, `bun run build`. | Build emits optimized variants, or the Node-for-build fallback is recorded in CI config. `engines.node` demoted so the repo tells one story. |
 | 2 | **Baseline config.** `site`, `output: 'static'`, `trailingSlash`, `prefetch`, `build.inlineStylesheets`, `@astrojs/sitemap`. | `bun run build` emits `sitemap-index.xml` with correct absolute URLs — **canonical UTF-8 routes only; the ASCII aliases from 4a must be excluded**, or we publish duplicate content pointing at our own canonical. |
-| 3 | **Biome.** `biome.json` written against the 2.5.2 schema, `types` domain on, `.astro` overrides. | `biome check` clean on a scaffolded page; no false positives in `.astro` frontmatter. |
+| 3 | **Biome.** `biome.json` written against the **2.5.5** schema (the installed version — the override block was verified against it by running the binary, `linting-biome-astro.md` §6), `types` domain on, `.astro` overrides. | `biome check` clean on a scaffolded page; no false positives in `.astro` frontmatter. |
 | 4 | **The i18n segment map + catch-all route.** `src/i18n/segments.ts`, `[...path].astro`, `getStaticPaths`. Slugs hardcoded, never generated (Turkish dotless-`ı` casing trap). | Both `/üst-yönetim-kurulu/bilgehan` and `/the-high-assembly/bilgehan` build from one Markdown file. |
 | 4a | **ASCII → UTF-8 redirect map.** Derive the ASCII fold (`ü→u`, `ö→o`, `ş→s`, `ğ→g`, `ç→c`, `ı→i`) from the same `segments.ts` at build time and emit a Caddy redirect block. Generated, never hand-written — a hand-maintained second list drifts from the route table. **The fold is not injective (`ı→i` collides with `i→i`), so the generator must assert no two segments fold to the same ASCII string and fail the build if they do.** | `/ust-yonetim-kurulu/bilgehan` 301s to `/üst-yönetim-kurulu/bilgehan`; a deliberate collision fails the build; adding a segment regenerates the map with no manual step. Verify Caddy writes `Location:` percent-encoded (`/%C3%BCst-y%C3%B6netim-kurulu/…`), not raw. |
 | 5 | **`<SEO />` component.** canonical, `hreflang` + `x-default` → Turkish, OG/Twitter, `<html lang>`. | Every route emits a correct canonical and a complete alternate set. |
@@ -121,8 +121,11 @@ adapter, N-domain static builds.
    `@astrojs/node` for one route.
 5. **Does the regulations reader need faceted filtering?** If yes, `data-pagefind-filter` shapes the
    content schema in subtask 9 — cheap now, a migration later.
-6. **Redirect direction** — confirm ASCII → 301 → UTF-8 (see §5.1). Asked twice, answers pointed
-   both ways.
+6. ~~**Redirect direction**~~ — **this is §5.1, which records it as decided (2026-07-26): ASCII →
+   301 → UTF-8.** Left in place rather than deleted because it is your file and the note "asked
+   twice, answers pointed both ways" may be recording a real doubt. If the decision holds, strike
+   this item; if it does not, strike §5.1 instead. As written the two entries contradict each
+   other — one says decided, the other asks for confirmation, on the same day.
 
 ## 6. Working arrangement
 
@@ -134,6 +137,8 @@ version-dependent claims, and review of what gets written — defects, not rewri
 
 1, then 2, then 4. Subtask 4 is the highest-risk piece: everything downstream — `hreflang`, sitemap,
 Pagefind, RSS, the 4a redirect map — hangs off the segment map, and it is the one part with no
-framework support behind it. Astro's official i18n recipe does **not** solve it (see review of
-`src/i18n/*`, 2026-07-26): it is prefix-based and derives language from path segment 0, both of
-which the translated-segment requirement rules out.
+framework support behind it. Astro's official i18n recipe does **not** solve it — the review of
+`src/i18n/*` lives in [`i18n-translated-segments.md`](i18n-translated-segments.md), 2026-07-26: it is
+prefix-based and derives language from path segment 0, both of which the translated-segment
+requirement rules out. That review has since been extended to cover the `i18n` block now in
+`astro.config.mjs` (working tree, uncommitted).
