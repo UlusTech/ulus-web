@@ -112,6 +112,10 @@ Get `prefetchAll` + `hover` + correct cache headers working first; this is a lat
 
 - [ ] `security.csp` + `clientPrerender` interaction. **[W]**
 - [ ] Whether Firefox has shipped cross-document view transitions in any release after 144 — that
-      would remove the last argument for `<ClientRouter />` entirely. **[V]** as of mid-2026: not yet.
+      would remove the last argument for `<ClientRouter />` entirely. Not yet as of mid-2026.
+      Rechecked 2026-07-26: MDN still banners `@view-transition` as *"Limited availability — not
+      Baseline because it does not work in some of the most widely-used browsers"* **[V]**, which is
+      consistent with Firefox still missing but does **not** name the browser. The per-browser grid is
+      JS-rendered and unfetchable; confirming Firefox specifically needs a real browser. **[G]**
 - [ ] Confirm Astro wraps its own view-transition CSS in a reduced-motion query, and what the
       documented equivalent is when moving to the native at-rule. **[W/I]**

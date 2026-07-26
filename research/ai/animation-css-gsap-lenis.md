@@ -14,9 +14,20 @@ The primitives now exist without JavaScript:
 - entry effects — `@starting-style`, `transition-behavior: allow-discrete`
 - an `IntersectionObserver` plus a class toggle (~15 lines) where a scroll-driven fallback is needed
 
-**[G]** Browser support for scroll-driven animations in Safari and Firefox as of 2026-07 is **not
-verified here**. Treat them as progressive enhancement with a static fallback until that is checked —
-not as the load-bearing mechanism.
+**Partly resolved 2026-07-26.** MDN carries an explicit status banner on `animation-timeline`:
+*"Limited availability — This feature is not Baseline because it does not work in some of the most
+widely-used browsers."* **[V]** —
+[MDN animation-timeline](https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline),
+fetched 2026-07-26.
+
+**[I]** That settles the *decision* — scroll-driven animation is progressive enhancement here, never
+the load-bearing mechanism, and a static fallback is mandatory.
+
+**[G]** The per-browser version numbers remain unverified. MDN renders its compatibility table with
+JavaScript, so a fetch returns the banner but not the grid; caniuse has the same problem. Reading the
+actual Safari and Firefox rows needs a real browser, and no version figure should be quoted here
+until someone has looked. The banner is enough for the recommendation and not enough for a support
+matrix.
 
 Everything must be wrapped in a reduced-motion query. The safer pattern is to opt *in* to motion
 (`@media (prefers-reduced-motion: no-preference)`) rather than opt out, because forgetting the query
@@ -81,8 +92,12 @@ easiest thing on this list to add later and the easiest to regret.
 
 ## Open for research
 
-- [ ] Scroll-driven animation support (`animation-timeline: view()`) in Safari and Firefox as of
-      2026-07. Decides whether §1 is load-bearing or enhancement-only. **[G]**
-- [ ] `@starting-style` and `transition-behavior: allow-discrete` support, same question. **[G]**
+- [x] ~~Scroll-driven animation support — does it decide whether §1 is load-bearing or
+      enhancement-only?~~ **Resolved 2026-07-26: enhancement-only.** `animation-timeline` is
+      explicitly **not Baseline** per MDN **[V]**.
+- [ ] The per-browser version matrix for `animation-timeline` in Safari and Firefox. MDN and caniuse
+      both render their tables with JS, so this needs a real browser, not a fetch. **[G]**
+- [ ] `@starting-style` and `transition-behavior: allow-discrete` support, same question and the same
+      fetch limitation. **[G]**
 - [ ] Resolve the Lenis contradiction if it ever becomes decision-relevant — read the source rather
       than either marketing or blog posts. Currently moot, since the recommendation is no.

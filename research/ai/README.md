@@ -29,6 +29,15 @@ question.
 > §5.1 records as decided the same day. Extended the `src/i18n/*` review to the `i18n` block now in
 > `astro.config.mjs`, which the first review missed. Added a **repo-state divergence** block to the
 > queue. Again: no claim's evidence changed and nothing was re-sourced.
+>
+> **Third pass, same day — resolving what desk research could close.** Three queue items resolved
+> against primary sources, all gating `PLAN.md` subtask 4 or subtask 8: custom locale paths are
+> static-safe (the heading artifact is now *demonstrated*, not assumed), `@astrojs/sitemap`'s `i18n`
+> option is confirmed prefix-based so `hreflang` is hand-rolled `[V]`, and scroll-driven animation is
+> confirmed enhancement-only via MDN's not-Baseline banner `[V]`. Two limits worth recording: a
+> summarising fetch of the Astro i18n page asserted the **opposite** of the MDX source on which
+> feature owns the `output: "server"` restriction, and MDN/caniuse render their compatibility grids
+> with JavaScript, so per-browser version numbers cannot be fetched at all and stay `[G]`.
 
 ---
 
@@ -342,17 +351,24 @@ Recorded here because the queue is the shared surface where that is checkable. A
 
 ### Astro, i18n, and the build
 
-- [ ] **Astro custom locale *paths* — static-safe or not?** The docs' limitations block ("`output`
-      must be `server`, no prerendered pages") appears nested under a custom-locale-paths heading in
-      Context7's extraction, but the constraints match `i18n.domains` exactly. Almost certainly a
-      heading artifact. Confirm against the rendered docs page.
-      → `i18n-translated-segments.md` `[G]`
+- [x] ~~**Astro custom locale *paths* — static-safe or not?**~~ **Resolved 2026-07-26: yes, the
+      heading artifact was real.** The restriction belongs to `i18n.domains`. Proof: the same heading
+      also carries `X-Forwarded-Host`/404 content, which is domain routing and cannot describe a
+      `path`/`codes` alias map `[V]`. Custom locale paths are static-safe `[I]`. Moot anyway — they
+      alias language *codes* to one path, not segments per language. **A summarising fetch of the
+      rendered page asserted the opposite**; prefer the MDX source when attribution matters.
+      → `i18n-translated-segments.md`
 - [ ] **Caddy redirect encoding** — does Caddy emit `Location:` percent-encoded when the target
       contains Turkish characters? Blocks the ASCII→UTF-8 alias map in subtask 4a.
       → `i18n-translated-segments.md` `[G]`
-- [ ] **`@astrojs/sitemap` alternates for non-prefix i18n** — is there any supported way to express
-      them, or does `hreflang` have to live entirely in `<SEO />`?
-      → `i18n-translated-segments.md`, `seo-and-baseline-config.md` `[G]`
+- [x] ~~**`@astrojs/sitemap` alternates for non-prefix i18n**~~ **Resolved 2026-07-26, `[V]`:** the
+      `i18n` option is prefix-based — *"The key is used to look for a locale part in a page path."*
+      No per-page mapping hook. `hreflang` is hand-rolled in `<SEO />`, as assumed.
+      → `i18n-translated-segments.md`
+- [ ] **Can `serialize()` add or rewrite `xhtml:link` alternates per URL?** Undocumented either way;
+      `filter()` only removes entries. One experiment, worth running before `<SEO />` is written — a
+      working `serialize()` would put alternates in the sitemap as well as the head.
+      → `i18n-translated-segments.md` `[G]`
 - [ ] **`security.csp: true` + `experimental.clientPrerender: true`** — claimed to produce a CSP
       violation on the injected inline speculation rules. Plausible, unverified.
       → `page-transitions-prefetch.md` `[W]`
@@ -362,17 +378,24 @@ Recorded here because the queue is the shared surface where that is checkable. A
 - [ ] **Does a theme change mid-transition interact badly with an active cross-document view
       transition?**
       → `dark-mode-theming.md` `[G]`
-- [ ] **Has Firefox shipped cross-document view transitions after 144?** Decides whether the native
-      at-rule's Firefox story is still "instant navigation".
+- [ ] **Has Firefox shipped cross-document view transitions after 144?** Not as of mid-2026.
+      Rechecked 2026-07-26: MDN still banners `@view-transition` as not Baseline `[V]`, consistent
+      with Firefox missing but not naming it. Needs the JS-rendered grid — see the version-matrix
+      item above.
       → `page-transitions-prefetch.md` `[G]`
 - [ ] **Does Astro wrap its own view-transition CSS in a reduced-motion query**, and what is the
       fallback?
       → `page-transitions-prefetch.md` `[G]`
-- [ ] **Scroll-driven animation support** (`animation-timeline: view()`) in Safari and Firefox as of
-      2026-07. Decides whether it is load-bearing or progressive enhancement.
-      → `animation-css-gsap-lenis.md` `[G]`
-- [ ] **`@starting-style` and `transition-behavior: allow-discrete`** support, same question.
-      → `animation-css-gsap-lenis.md` `[G]`
+- [x] ~~**Scroll-driven animation — load-bearing or progressive enhancement?**~~ **Resolved
+      2026-07-26: enhancement only.** MDN banners `animation-timeline` as **not Baseline** — *"does
+      not work in some of the most widely-used browsers"* `[V]`. Static fallback is mandatory.
+      → `animation-css-gsap-lenis.md`
+- [ ] **Per-browser version matrix** for `animation-timeline`, `@starting-style`,
+      `transition-behavior: allow-discrete`, and cross-document `@view-transition` in Safari and
+      Firefox. **MDN and caniuse both render compat tables with JavaScript**, so a fetch returns the
+      status banner and not the grid — this needs a real browser. No version figure belongs in these
+      files until someone has looked.
+      → `animation-css-gsap-lenis.md`, `page-transitions-prefetch.md` `[G]`
 - [ ] **The Lenis contradiction** — resolve by reading the source, if it ever becomes
       decision-relevant.
       → `animation-css-gsap-lenis.md` `[G]`

@@ -37,10 +37,38 @@ wanted, the answer is N static builds of one repo with `site` and a default-lang
 build-time env vars — cleaner than `i18n.domains` and it works with static output. **[I]** Parked by
 decision 2026-07-26.
 
-**[G]** Context7's extraction nests that same limitations block under a "Custom locale paths"
-heading. The listed constraints match `domains` exactly, so this is most likely a heading-nesting
-artifact and custom locale *paths* remain static-safe — but confirm against the rendered docs page
-before relying on either reading. It does not change the recommendation.
+### Resolved 2026-07-26: the heading artifact was real, custom locale paths are not restricted
+
+Previously `[G]`: the limitations block appears nested under a "Custom locale paths" heading, and it
+was unclear whether the `output: "server"` restriction belonged to *paths* or to *domains*.
+
+**It belongs to `domains`.** The artifact is now demonstrated rather than guessed at: **[V]**
+
+- The same "Custom locale paths" heading also carries this, verbatim — *"relies on `X-Forwarded-Host`
+  (or `Host`) and `X-Forwarded-Proto` (or `URL#protocol`) headers… failure to retrieve these headers
+  will result in a 404 status code page."* Host-header negotiation is **domain** routing. Custom
+  locale paths are a `path`/`codes` alias map and never touch request headers. Content from the
+  `domains` section is provably sitting under that heading. **[V]** —
+  [internationalization.mdx](https://github.com/withastro/docs/blob/main/src/content/docs/en/guides/internationalization.mdx)
+  via Context7, 2026-07-26
+- Astro's own `domains` example carries the inline comment `output: "server", // required, with no
+  prerendered pages` — the restriction is attached to `domains` at its own source. **[V]** same page
+- The custom-locale-paths reference (`getPathByLocale`, `astro-i18n.mdx`) documents the `path`/`codes`
+  form with **no output-mode restriction stated**, as does the configuration reference. **[V]**
+
+**[I]** So custom locale paths are static-safe. Graded an inference, not a fact: absence of a stated
+restriction is weaker than a statement of support, and no page says "works with `output: 'static'`"
+outright.
+
+**A caution that cost real time here.** A summarising fetch of the rendered page asserted the
+opposite — that the limitations apply "exclusively to custom locale paths" — because the summariser
+read the same heading nesting and resolved it the other way. Two independent extractions of this page
+disagree about which feature owns that block. Prefer the MDX source over any rendering of it when
+attribution matters. **[I]**
+
+**It still does not change the recommendation.** Custom locale paths map several *language codes* to
+one path (`fr`, `fr-BR`, `fr-CA` → `french`). They do not translate the segment per language, which
+is the actual requirement. Being available is not being useful.
 
 ## Astro's official i18n recipe does not solve this either
 
@@ -125,8 +153,20 @@ helpers and the language picker are not salvageable.
 
 `@astrojs/sitemap`'s `i18n` option emits `xhtml:link` alternates by matching **path prefixes**
 (`/es/`, `/fr/`). With translated segments there is no prefix to match, so **that option does not
-apply and `hreflang`/`x-default` become hand-rolled** in the `<SEO />` component. **[I]** The
-sitemap integration still earns its place for URL enumeration.
+apply and `hreflang`/`x-default` become hand-rolled** in the `<SEO />` component. The sitemap
+integration still earns its place for URL enumeration.
+
+**Promoted `[I]` → `[V]` on 2026-07-26.** The integration's docs state the mechanism outright:
+*"The key is used to look for a locale part in a page path."* Locale membership is derived from the
+path, with no per-page mapping hook. **[V]** —
+[Sitemap integration](https://docs.astro.build/en/guides/integrations-guide/sitemap/)
+
+The escape hatch was checked and does not close the gap: `filter()` only **removes** URLs, and
+`serialize()` is documented as returning "a `SitemapItem` or `undefined`" with examples covering
+`changefreq`, `lastmod` and `priority` — **whether it can add or rewrite `xhtml:link` alternates is
+not documented either way**. **[G]** Worth one experiment before the `<SEO />` component is written,
+since a working `serialize()` would put alternates in the sitemap as well as the head; but plan for
+hand-rolled, because that is what the documented surface supports.
 
 ## Slug form
 
@@ -148,12 +188,17 @@ Consequences to accept:
 
 ## Open for research
 
-- [ ] Custom locale *paths* vs `i18n.domains` — is the static-output restriction really scoped to
-      `domains` only? **[G]**
+- [x] ~~Custom locale *paths* vs `i18n.domains` — is the static-output restriction really scoped to
+      `domains` only?~~ **Resolved 2026-07-26: yes.** The heading artifact is demonstrated by
+      misfiled `X-Forwarded-Host` content **[V]**; custom locale paths are static-safe **[I]**. Moot
+      regardless — they alias language *codes* to one path, not segments per language.
 - [ ] Does Caddy write `Location:` percent-encoded when redirecting to a target containing Turkish
       characters (`/%C3%BCst-y%C3%B6netim-kurulu/…`)? Blocks the alias map. **[G]**
-- [ ] `@astrojs/sitemap` — confirm there is no supported way to express alternates for
-      non-prefix-based locale routing before committing to hand-rolled `hreflang`. **[I]**, unverified
+- [x] ~~`@astrojs/sitemap` — confirm the `i18n` option is prefix-based.~~ **Resolved 2026-07-26,
+      `[V]`:** *"The key is used to look for a locale part in a page path."* `hreflang` is
+      hand-rolled.
+- [ ] Can `serialize()` add or rewrite `xhtml:link` alternates per URL? Undocumented either way;
+      `filter()` only removes. One experiment, worth running before `<SEO />` is written. **[G]**
 - [ ] Pagefind's Turkish stemming quality on agglutinated forms (`yönetim` / `yönetimi` /
       `yönetimde`). Empirical, needs a built index. See [`tooling-packages.md`](tooling-packages.md).
 - [ ] Does enabling `i18n` in `astro.config.mjs` with `prefixDefaultLocale: false` interfere with a

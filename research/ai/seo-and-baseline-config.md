@@ -96,8 +96,12 @@ regression from it. A gate on an unmeasured number gets bypassed within two PRs.
 - [ ] `initcwnd` tuning on the VDS — claimed that raising it to 32 (with
       `tcp_slow_start_after_idle = 0`) sends ~46KB in the first RTT. We control the box, so it is
       actionable, but the claim is unverified and it is a kernel-level change. **[W]**
-- [ ] Whether `@astrojs/sitemap` offers any supported way to express alternates for non-prefix
-      locale routing. **[G]**
+- [x] ~~Whether `@astrojs/sitemap` offers any supported way to express alternates for non-prefix
+      locale routing.~~ **Resolved 2026-07-26, `[V]`:** the `i18n` option is prefix-based —
+      *"The key is used to look for a locale part in a page path."* `hreflang` is hand-rolled in
+      `<SEO />`, as this file already assumed. The `serialize()` escape hatch is undocumented for
+      alternates and is tracked in [`i18n-translated-segments.md`](i18n-translated-segments.md),
+      which owns this fact.
 - [ ] Current guidance on `llms.txt` — whether it has moved from proposal toward anything a search
       engine actually consumes. Cheap to generate either way, and the per-page `.md` twin is
       independently useful for the regulations reader. **[W]**
